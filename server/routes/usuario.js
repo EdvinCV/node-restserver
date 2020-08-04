@@ -19,7 +19,7 @@ app.get('/prueba', (req, res) => {
 app.get('/usuario', (req, res) => {
 
     let desde = Number(req.query.desde) || 0;
-
+    console.log("ENV", process.env);
 
     Usuario.find({}, 'nombre email role estado google img')
         .skip(desde)
