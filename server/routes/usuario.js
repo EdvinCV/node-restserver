@@ -9,6 +9,13 @@ const _ = require('underscore');
 // Import Models
 const Usuario = require('../models/usuario');
 
+app.get('/prueba', (req, res) => {
+    res.json({
+        ok: true,
+        message: 'Server working'
+    });
+});
+
 app.get('/usuario', (req, res) => {
 
     let desde = Number(req.query.desde) || 0;
