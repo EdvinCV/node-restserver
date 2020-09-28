@@ -5,46 +5,39 @@ const app = express();
 const bcrypt = require('bcrypt');
 // Import underscore _
 const _ = require('underscore');
+// Token Middleware
+const { verifyToken, verifyAdmin_Role } = require('../middlewares/authentication');
 
 // Import Models
 const Usuario = require('../models/usuario');
+const { verify } = require('jsonwebtoken');
 
-app.get('/prueba', (req, res) => {
-    res.json({
-        ok: true,
-        message: 'Server working'
-    });
-});
 
-app.get('/usuario', (req, res) => {
+app.get('/usuario', [verifyToken, verifyAdmin_Role] , (req, res) => {
 
     let desde = Number(req.query.desde) || 0;
-    console.log("ENV", process.env);
 
     Usuario.find({}, 'nombre email role estado google img')
         .skip(desde)
         .limit(5)
         .exec( (err, data) => {
-        if(err){
-            return res.status(400).json({
-                ok: false,
-                error: err
+            if(err){
+                return res.status(400).json({
+                    ok: false,
+                    error: err
+                });
+            }
+            Usuario.count( {estado: true}, (err, count) => {
+                res.json({
+                    ok: true,
+                    usuarios: data,
+                    count
+                });
             });
-        }
-
-        Usuario.count( {estado: true}, (err, count) => {
-            res.json({
-                ok: true,
-                usuarios: data,
-                count
-            });
-        });
-
-        
     });
 });
 
-app.post('/usuario', (req, res) => {
+app.post('/usuario', [verifyToken, verifyAdmin_Role] , (req, res) => {
     let body = req.body;
 
     let usuario = new Usuario({
@@ -55,24 +48,21 @@ app.post('/usuario', (req, res) => {
     });
 
     usuario.save( (err, user) => {
-
         if(err){
             return res.status(400).json({
                 ok: false,
                 message: err
             });
         }
-
         res.json({
             ok: true,
             user
         })
-
     });
 
 });
 
-app.put('/usuario/:id', (req, res) => {
+app.put('/usuario/:id', [verifyToken, verifyAdmin_Role] , (req, res) => {
     let id = req.params.id;
     let body = _.pick(req.body, ['nombre', 'email', 'img', 'role', 'estado'] );
 
@@ -98,7 +88,7 @@ app.put('/usuario/:id', (req, res) => {
     });
 });
 
-app.delete('/usuario/:id', (req, res) => {
+app.delete('/usuario/:id', [verifyToken, verifyAdmin_Role] , (req, res) => {
     
     let id = req.params.id;
 
